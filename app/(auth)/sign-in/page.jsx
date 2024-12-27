@@ -2,6 +2,7 @@
 import GlobalApi from '@/app/_utils/GlobalApi'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { LoaderIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,7 +13,7 @@ function SignIn() {
     const [email,setEmail]=useState();
     const [password,setPassword]=useState();
     const router=useRouter();
-
+    const [loader,setLoader]=useState();
     useEffect(()=>{
         const jwt=sessionStorage.getItem('jwt');
         if(jwt)
@@ -21,6 +22,7 @@ function SignIn() {
         }
     },[])
     const onSignIn=()=>{
+        setLoader(true)
         GlobalApi.SignIn(email,password).then(resp=>{
             console.log(resp.data.user)
             console.log(resp.data.jwt);
@@ -28,9 +30,11 @@ function SignIn() {
             sessionStorage.setItem('jwt',resp.data.jwt);
             toast("Login Successfully")
             router.push('/');
+            setLoader(false)
         },(e)=>{
             console.log(e);
-            toast("Server Error!")
+            toast(e?.response?.data?.error?.message)
+            setLoader(false)
         })
     }
 
@@ -43,7 +47,7 @@ function SignIn() {
             <div className='w-full flex flex-col gap-5 mt-7'>
                 <Input placeholder='name@example.com' onChange={(e)=>setEmail(e.target.value)}/>
                 <Input type='password' placeholder='Password' onChange={(e)=>setPassword(e.target.value)} />
-                <Button onClick={()=>onSignIn()} disabled={!(email||password)}>Sign In</Button>
+                <Button onClick={()=>onSignIn()} disabled={!(email||password)}>{loader?<LoaderIcon className='animate-spin'/>:'Sign In'}</Button>
                 <p>Don't have an account ? 
                     <Link href={'/create-account'} className='text-blue-500'>
                         Click here to create new account

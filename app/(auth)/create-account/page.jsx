@@ -13,7 +13,7 @@ function CreateAccount() {
     const [email,setEmail]=useState();
     const [password,setPassword]=useState();
     const router=useRouter();
-
+    const [loader,setLoader]=useState();
     useEffect(()=>{
             const jwt=sessionStorage.getItem('jwt');
             if(jwt)
@@ -22,6 +22,7 @@ function CreateAccount() {
             }
     },[])
     const onCreateAccount=()=>{
+        setLoader(true)
         GlobalApi.registerUser(username,email,password).then(resp=>{
             console.log(resp.data.user)
             console.log(resp.data.jwt)
@@ -29,8 +30,10 @@ function CreateAccount() {
             sessionStorage.setItem('jwt',resp.data.jwt);
             toast("Account Created Successfully")
             router.push('/');
+            setLoader(false)
         },(e)=>{
-            toast("Error while creating account")
+            setLoader(false)
+            toast(e?.response?.data?.error?.message)
         })
     }
   return (
@@ -43,7 +46,7 @@ function CreateAccount() {
                 <Input placeholder='Username' onChange={(e)=>setUsername(e.target.value)}/>
                 <Input placeholder='name@example.com' onChange={(e)=>setEmail(e.target.value)}/>
                 <Input type='password' placeholder='Password' onChange={(e)=>setPassword(e.target.value)} />
-                <Button onClick={()=>onCreateAccount()} disabled={!(username||email||password)}>Create and Account</Button>
+                <Button onClick={()=>onCreateAccount()} disabled={!(username||email||password)}> {loader?<LoaderIcon className='animate-spin'/>:'Create and Account'} </Button>
                 <p>Already have an account 
                     <Link href={'/sign-in'} className='text-blue-500'>
                         Click here to Sign In
